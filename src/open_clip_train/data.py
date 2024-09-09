@@ -5,6 +5,8 @@ import math
 import os
 import random
 import sys
+import lmdb
+from io import BytesIO
 import braceexpand
 from dataclasses import dataclass
 from multiprocessing import Value
@@ -24,6 +26,50 @@ try:
     import horovod.torch as hvd
 except ImportError:
     hvd = None
+
+
+class GeneEXPDataset_LMDB(Dataset):
+    def __init__(self, csv_path, lmdb_path, transforms, sub_sample=False, tokenizer=None):
+        logging.debug(f'Loading image data from {lmdb_path}.')
+        self.lmdb_path = lmdb_path
+        self.df = pd.read_csv(csv_path)
+        self.transforms = transforms
+        self.tokenize = tokenizer
+        if sub_sample:
+            self.df = self.df.sample(n=10, random_state=42).reset_index(drop=True)
+        
+    def open_lmdb(self):
+        # Open LMDB environment (read-only mode)
+        self.env = lmdb.open(self.lmdb_path,  
+                             readonly=True, 
+                             lock=False, readahead=False, meminit=False)
+        self.txn = self.env.begin(buffers=True)
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        if not hasattr(self, 'txn'):
+            self.open_lmdb()
+            
+        example = self.df.iloc[idx]
+        answers = example["suffix"]
+        image_key = example["image"]
+
+        # Retrieve the image from LMDB
+        img_data = self.txn.get(image_key.encode())
+        
+        # Load image from binary data
+        image = Image.open(BytesIO(img_data))
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        
+        # Apply transformations
+        images = self.transforms(image)
+        texts = self.tokenize([answers])[0]
+        return images, texts
+
+        
 
 
 class CsvDataset(Dataset):
@@ -473,6 +519,36 @@ def get_csv_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
     return DataInfo(dataloader, sampler)
 
 
+def get_lmdb_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
+    input_filename = '/home/than/DeepLearning/HEST/tifs_dataset.lmdb'
+    csv_path = '/home/than/DeepLearning/HEST/csv_exp/coca_tokens.csv'
+    assert input_filename
+    dataset = GeneEXPDataset_LMDB(
+        csv_path=csv_path,
+        lmdb_path=input_filename,
+        transforms=preprocess_fn,
+        sub_sample=None,
+        tokenizer=tokenizer
+    )
+    num_samples = len(dataset)
+    sampler = DistributedSampler(dataset) if args.distributed and is_train else None
+    shuffle = is_train and sampler is None
+
+    dataloader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=shuffle,
+        num_workers=args.workers,
+        pin_memory=True,
+        sampler=sampler,
+        drop_last=is_train,
+    )
+    dataloader.num_samples = num_samples
+    dataloader.num_batches = len(dataloader)
+
+    return DataInfo(dataloader, sampler)
+
+
 class SyntheticDataset(Dataset):
 
     def __init__(
@@ -526,6 +602,8 @@ def get_synthetic_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None
 def get_dataset_fn(data_path, dataset_type):
     if dataset_type == "webdataset":
         return get_wds_dataset
+    elif dataset_type == "lmdb":
+        return get_lmdb_dataset
     elif dataset_type == "csv":
         return get_csv_dataset
     elif dataset_type == "synthetic":

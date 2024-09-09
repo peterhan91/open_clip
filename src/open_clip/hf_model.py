@@ -106,6 +106,7 @@ class HFTextEncoder(nn.Module):
             proj_type: str = None,
             pretrained: bool = True,
             output_tokens: bool = False,
+            tokenizer_len = None,
     ):
         super().__init__()
         self.output_tokens = output_tokens
@@ -129,6 +130,12 @@ class HFTextEncoder(nn.Module):
         else:
             self.config = config
             self.transformer = AutoModel.from_config(config)
+        
+        # Resize token embeddings if tokenizer_len is provided
+        if tokenizer_len is not None:
+            print(f"Resizing token embeddings to {tokenizer_len}")
+            self.transformer.resize_token_embeddings(tokenizer_len)
+        
         if pooler_type is None:  # get default arch pooler
             pooler_type = (arch_dict[self.config.model_type]["pooler"])
 

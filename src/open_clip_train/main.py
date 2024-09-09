@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+import json
 import random
 from datetime import datetime
 from functools import partial
@@ -220,6 +221,21 @@ def main(args):
     if args.siglip:
         model_kwargs['init_logit_scale'] = np.log(10)  # different from CLIP
         model_kwargs['init_logit_bias'] = -10
+
+    # add new tokens to tokenizer if needed
+    with open ('/home/than/DeepLearning/HEST/csv_exp/tokens_new.json', 'r') as f:
+        input = json.load(f)
+    goi = input['genes']
+    task = input['tasks']
+    tokens_to_add = {
+                    'additional_special_tokens': \
+                    [f'<{x}>' for x in goi] + \
+                    [f'<{x}>' for x in task] + \
+                    [f'<exp_{x}>' for x in range(100)] 
+                }
+    
+    tokenizer = get_tokenizer(args.model, new_tokens=tokens_to_add)
+    # tokenizer.add_special_tokens(tokens_to_add)
     model, preprocess_train, preprocess_val = create_model_and_transforms(
         args.model,
         args.pretrained,
@@ -237,6 +253,7 @@ def main(args):
         aug_cfg=args.aug_cfg,
         pretrained_image=args.pretrained_image,
         output_dict=True,
+        tokenizer_len=tokenizer.get_len_tokenizer(),
         **model_kwargs,
     )
     if args.distill:
@@ -353,7 +370,7 @@ def main(args):
             logging.info(f"=> loaded checkpoint '{args.resume}' (epoch {start_epoch})")
 
     # initialize datasets
-    tokenizer = get_tokenizer(args.model)
+    # tokenizer = get_tokenizer(args.model)
     data = get_data(
         args,
         (preprocess_train, preprocess_val),

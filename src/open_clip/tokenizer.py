@@ -410,6 +410,7 @@ class HFTokenizer:
             clean: str = 'whitespace',
             strip_sep_token: bool = False,
             language: Optional[str] = None,
+            new_tokens = None,
             **kwargs
     ):
         from transformers import AutoTokenizer
@@ -422,6 +423,12 @@ class HFTokenizer:
         self.context_length = context_length
         self.clean_fn = get_clean_fn(clean)
         self.strip_sep_token = strip_sep_token
+        if new_tokens:
+            self.tokenizer.add_special_tokens(new_tokens)
+        self.len_tokenizer = len(self.tokenizer) 
+
+    def get_len_tokenizer(self):
+        return self.len_tokenizer
 
     def save_pretrained(self, dest):
         self.tokenizer.save_pretrained(dest)

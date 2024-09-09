@@ -84,6 +84,7 @@ def _get_hf_config(model_id, cache_dir=None):
 def get_tokenizer(
         model_name: str = '',
         context_length: Optional[int] = None,
+        new_tokens = None,
         **kwargs,
 ):
     if model_name.startswith(HF_HUB_PREFIX):
@@ -94,6 +95,7 @@ def get_tokenizer(
             tokenizer = HFTokenizer(
                 model_name,
                 context_length=context_length or DEFAULT_CONTEXT_LENGTH,
+                new_tokens=new_tokens,
                 **kwargs,
             )
             return tokenizer
@@ -193,6 +195,7 @@ def create_model(
         cache_dir: Optional[str] = None,
         output_dict: Optional[bool] = None,
         require_pretrained: bool = False,
+        tokenizer_len = None,
         **model_kwargs,
 ):
     force_preprocess_cfg = force_preprocess_cfg or {}
@@ -260,7 +263,8 @@ def create_model(
         model_cfg = dict(model_cfg, **model_kwargs)  # merge cfg dict w/ kwargs (kwargs overrides cfg)
         if custom_text:
             if "multimodal_cfg" in model_cfg:
-                model = CoCa(**model_cfg, cast_dtype=cast_dtype)
+                # need to resize embeddings for custom text models
+                model = CoCa(**model_cfg, cast_dtype=cast_dtype, tokenizer_len=tokenizer_len)
             else:
                 model = CustomTextCLIP(**model_cfg, cast_dtype=cast_dtype)
         else:
@@ -391,6 +395,7 @@ def create_model_and_transforms(
         pretrained_hf: bool = True,
         cache_dir: Optional[str] = None,
         output_dict: Optional[bool] = None,
+        tokenizer_len = None,
         **model_kwargs,
 ):
     force_preprocess_cfg = merge_preprocess_kwargs(
@@ -411,6 +416,7 @@ def create_model_and_transforms(
         pretrained_hf=pretrained_hf,
         cache_dir=cache_dir,
         output_dict=output_dict,
+        tokenizer_len=tokenizer_len,
         **model_kwargs,
     )
 

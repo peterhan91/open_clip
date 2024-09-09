@@ -98,6 +98,7 @@ class CoCa(nn.Module):
             init_logit_bias: Optional[float] = None,
             cast_dtype: Optional[torch.dtype] = None,
             pad_id: int = 0,
+            tokenizer_len=None,
     ):
         super().__init__()
         multimodal_cfg = MultimodalCfg(**multimodal_cfg) if isinstance(multimodal_cfg, dict) else multimodal_cfg
@@ -109,6 +110,7 @@ class CoCa(nn.Module):
             text_cfg=text_cfg,
             quick_gelu=quick_gelu,
             cast_dtype=cast_dtype,
+            tokenizer_len=tokenizer_len,
         )
 
         vocab_size = (
