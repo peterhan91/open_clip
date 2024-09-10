@@ -3,6 +3,9 @@
 models/
 features/
 results/
+*.ipynb
+*.json
+*.sh
 
 tests/data/
 *.pt

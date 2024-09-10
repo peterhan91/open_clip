@@ -118,7 +118,7 @@ class CoCa(nn.Module):
             if hasattr(text_cfg, "hf_model_name") and text_cfg.hf_model_name is not None
             else text_cfg.vocab_size
         )
-
+ 
         self.visual = _build_vision_tower(
             embed_dim=embed_dim,
             vision_cfg=vision_cfg,
@@ -176,6 +176,7 @@ class CoCa(nn.Module):
     ):
         if image_latent is None or image_embs is None:
             image_latent, image_embs = self._encode_image(image)
+            # print(image_latent.shape, image_embs.shape)
 
         if text is None:
             return {"image_features": image_latent, "image_embs": image_embs}

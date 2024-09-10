@@ -127,6 +127,7 @@ def _build_vision_tower(
             patch_drop=vision_cfg.patch_dropout if vision_cfg.patch_dropout > 0 else None,
             embed_dim=embed_dim,
             image_size=vision_cfg.image_size,
+            output_tokens=vision_cfg.output_tokens,
         )
     elif isinstance(vision_cfg.layers, (tuple, list)):
         vision_heads = vision_cfg.width * 32 // vision_cfg.head_width
