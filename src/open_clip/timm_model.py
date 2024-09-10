@@ -55,6 +55,8 @@ class TimmModel(nn.Module):
             timm_kwargs['drop_path_rate'] = drop_path
         if patch_drop is not None:
             timm_kwargs['patch_drop_rate'] = patch_drop
+        if model_name == 'hf-hub:MahmoodLab/uni':
+            timm_kwargs['init_values'] = 1e-5
 
         custom_pool = pool in ('abs_attn', 'rot_attn')
         if proj:
