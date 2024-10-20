@@ -116,6 +116,7 @@ def get_tokenizer(
         tokenizer = HFTokenizer(
             text_config['hf_tokenizer_name'],
             context_length=context_length,
+            new_tokens=new_tokens,
             **tokenizer_kwargs,
         )
     else:
