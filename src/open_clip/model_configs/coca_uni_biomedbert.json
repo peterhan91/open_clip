@@ -1,0 +1,27 @@
+{
+    "embed_dim": 768,
+    "vision_cfg": {
+        "image_size": 224 ,
+        "timm_model_name": "hf-hub:MahmoodLab/uni",
+        "timm_model_pretrained": true,
+        "timm_pool": "",
+        "timm_proj": "linear",
+        "output_tokens": true
+    },
+    "text_cfg": {
+        "context_length": 185,
+        "hf_model_name": "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext",
+        "hf_tokenizer_name": "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext",
+        "hf_proj_type": "linear",
+        "hf_pooler_type": "cls_last_hidden_state_pooler",
+        "width": 768,
+        "output_tokens": true 
+    },
+    "multimodal_cfg": {
+        "context_length": 185,
+        "width": 768,
+        "heads": 8,
+        "layers": 12
+    },
+    "custom_text": true
+}

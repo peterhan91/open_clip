@@ -53,7 +53,7 @@ class GeneEXPDataset_LMDB(Dataset):
             self.open_lmdb()
             
         example = self.df.iloc[idx]
-        answers = example["suffix"]
+        answers = example["clinical_summary"]
         image_key = example["image"]
 
         # Retrieve the image from LMDB
@@ -521,7 +521,7 @@ def get_csv_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
 
 def get_lmdb_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
     input_filename = '/home/than/DeepLearning/HEST/tifs_dataset.lmdb'
-    csv_path = '/home/than/DeepLearning/HEST/csv_exp/coca_tokens.csv'
+    csv_path = '/home/than/DeepLearning/HEST/csv_exp/hest_data.csv'
     assert input_filename
     dataset = GeneEXPDataset_LMDB(
         csv_path=csv_path,

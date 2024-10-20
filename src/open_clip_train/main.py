@@ -229,6 +229,7 @@ def main(args):
     task = input['tasks']
     tokens_to_add = {
                     'additional_special_tokens': \
+                    ['<GEXP>'] + \
                     [f'<{x}>' for x in goi] + \
                     [f'<{x}>' for x in task] + \
                     [f'<exp_{x}>' for x in range(100)] 
@@ -256,6 +257,7 @@ def main(args):
         tokenizer_len=tokenizer.get_len_tokenizer(),
         **model_kwargs,
     )
+
     if args.distill:
         # FIXME: currently assumes the model you're distilling from has the same tokenizer & transforms.
         dist_model, _, _ = create_model_and_transforms(
